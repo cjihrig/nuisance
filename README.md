@@ -10,6 +10,34 @@
 
 If all of the authentication strategies are successful, `request.auth.credentials` will be populated with the credentials from each strategy. If any of the strategies fail, an Unauthorized error will be returned.
 
+## Example
+
+```javascript
+// Given the following auth strategies in your server:
+server.auth.strategy('fooAuth', 'scheme', options);
+server.auth.strategy('barAuth', 'scheme', options);
+server.auth.strategy('bazAuth', 'scheme', options);
+
+// You can define an aggregate strategy based on the nuisance scheme:
+server.auth.strategy('fooBarBaz', 'nuisance', {
+  strategies: ['fooAuth', 'barAuth', 'bazAuth']
+});
+
+// Then use the aggregate strategy as needed:
+server.route([
+  {
+    method: 'GET',
+    path: '/foo/bar/baz',
+    config: {
+      auth: 'fooBarBaz',
+      handler: function (request, reply) {
+        reply('ok');
+      }
+    }
+  }
+]);
+```
+
 ## Configuration Options
 
 - `strategies` (array) - An array of strings, representing the authentication strategies to be tested.
