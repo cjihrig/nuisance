@@ -27,7 +27,10 @@ function prepareServer (callback) {
 
           if (header === options.value) {
             return reply.continue({
-              credentials: { [options.header]: options.value }
+              credentials: {
+                [options.header]: options.value,
+                scope: options.scope
+              }
             });
           }
 
@@ -38,7 +41,7 @@ function prepareServer (callback) {
 
     server.auth.strategy('fooAuth', 'test', { header: 'foo', value: 42 });
     server.auth.strategy('barAuth', 'test', { header: 'bar', value: 53 });
-    server.auth.strategy('bazAuth', 'test', { header: 'baz', value: 64 });
+    server.auth.strategy('bazAuth', 'test', { header: 'baz', value: 64, scope: ['baz', 'foo'] });
 
     server.auth.strategy('fooOnly', 'nuisance', {
       strategies: ['fooAuth']
@@ -107,7 +110,8 @@ describe('Nuisance', () => {
           credentials: {
             fooAuth: { foo: 42 },
             barAuth: { bar: 53 },
-            bazAuth: { baz: 64 }
+            bazAuth: { baz: 64 },
+            scope: ['baz', 'foo']
           },
           strategy: 'fooBarBaz',
           mode: 'required',
@@ -136,6 +140,36 @@ describe('Nuisance', () => {
           statusCode: 401,
           error: 'Unauthorized'
         });
+        done();
+      });
+    });
+  });
+
+  it('does not expose scope if none of the strategies set it', (done) => {
+    prepareServer((err, server) => {
+      expect(err).to.not.exist();
+
+      server.inject({
+        method: 'GET',
+        url: '/foo/bar',
+        headers: {
+          foo: 42,
+          bar: 53
+        }
+      }, (res) => {
+        expect(res.statusCode).to.equal(200);
+        expect(res.result).to.deep.include({
+          isAuthenticated: true,
+          credentials: {
+            fooAuth: { foo: 42 },
+            barAuth: { bar: 53 }
+          },
+          strategy: 'fooBar',
+          mode: 'required',
+          error: null
+        });
+
+        expect(res.result.credentials.scope).to.be.undefined();
         done();
       });
     });
