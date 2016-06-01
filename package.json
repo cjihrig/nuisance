@@ -1,16 +1,16 @@
 {
   "name": "nuisance",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "hapi authentication requiring multiple strategies",
   "author": "Continuation Labs <contact@continuation.io> (http://continuation.io/)",
   "main": "lib/index.js",
-  "homepage": "https://github.com/cjihrig/nuisance",
+  "homepage": "https://github.com/continuationlabs/nuisance",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cjihrig/nuisance"
+    "url": "https://github.com/continuationlabs/nuisance"
   },
   "bugs": {
-    "url": "https://github.com/cjihrig/nuisance/issues"
+    "url": "https://github.com/continuationlabs/nuisance/issues"
   },
   "license": "MIT",
   "scripts": {
