@@ -1,6 +1,6 @@
 {
   "name": "nuisance",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "hapi authentication requiring multiple strategies",
   "author": "Continuation Labs <contact@continuation.io> (http://continuation.io/)",
   "main": "lib/index.js",
