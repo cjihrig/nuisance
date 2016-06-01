@@ -26,12 +26,13 @@ function prepareServer (callback) {
           const header = request.headers[options.header];
 
           if (header === options.value) {
-            return reply.continue({
-              credentials: {
-                [options.header]: options.value,
-                scope: options.scope
-              }
-            });
+            const credentials = options.credentials !== undefined ?
+                                options.credentials : {
+                                  [options.header]: options.value,
+                                  scope: options.scope
+                                };
+
+            return reply.continue({ credentials });
           }
 
           reply(Boom.unauthorized());
@@ -42,6 +43,7 @@ function prepareServer (callback) {
     server.auth.strategy('fooAuth', 'test', { header: 'foo', value: 42 });
     server.auth.strategy('barAuth', 'test', { header: 'bar', value: 53 });
     server.auth.strategy('bazAuth', 'test', { header: 'baz', value: 64, scope: ['baz', 'foo'] });
+    server.auth.strategy('badCreds', 'test', { header: 'bad', value: 99, credentials: null });
 
     server.auth.strategy('fooOnly', 'nuisance', {
       strategies: ['fooAuth']
@@ -51,6 +53,9 @@ function prepareServer (callback) {
     });
     server.auth.strategy('fooBarBaz', 'nuisance', {
       strategies: ['fooAuth', 'barAuth', 'bazAuth']
+    });
+    server.auth.strategy('fooBadCreds', 'nuisance', {
+      strategies: ['fooAuth', 'badCreds']
     });
 
     server.route([
@@ -83,6 +88,16 @@ function prepareServer (callback) {
             reply(request.auth);
           }
         }
+      },
+      {
+        method: 'GET',
+        path: '/foo/badCreds',
+        config: {
+          auth: 'fooBadCreds',
+          handler: function (request, reply) {
+            reply(request.auth);
+          }
+        }
       }
     ]);
 
@@ -105,7 +120,7 @@ describe('Nuisance', () => {
         }
       }, (res) => {
         expect(res.statusCode).to.equal(200);
-        expect(res.result).to.deep.include({
+        expect(res.result).to.include({
           isAuthenticated: true,
           credentials: {
             fooAuth: { foo: 42 },
@@ -136,7 +151,7 @@ describe('Nuisance', () => {
         }
       }, (res) => {
         expect(res.statusCode).to.equal(401);
-        expect(res.result).to.deep.equal({
+        expect(res.result).to.equal({
           statusCode: 401,
           error: 'Unauthorized'
         });
@@ -158,7 +173,7 @@ describe('Nuisance', () => {
         }
       }, (res) => {
         expect(res.statusCode).to.equal(200);
-        expect(res.result).to.deep.include({
+        expect(res.result).to.include({
           isAuthenticated: true,
           credentials: {
             fooAuth: { foo: 42 },
@@ -170,6 +185,34 @@ describe('Nuisance', () => {
         });
 
         expect(res.result.credentials.scope).to.be.undefined();
+        done();
+      });
+    });
+  });
+
+  it('handles credentials that are not objects', (done) => {
+    prepareServer((err, server) => {
+      expect(err).to.not.exist();
+
+      server.inject({
+        method: 'GET',
+        url: '/foo/badCreds',
+        headers: {
+          foo: 42,
+          bad: 99
+        }
+      }, (res) => {
+        expect(res.statusCode).to.equal(200);
+        expect(res.result).to.include({
+          isAuthenticated: true,
+          credentials: {
+            fooAuth: { foo: 42 },
+            badCreds: null
+          },
+          strategy: 'fooBadCreds',
+          mode: 'required',
+          error: null
+        });
         done();
       });
     });
