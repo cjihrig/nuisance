@@ -40,10 +40,20 @@ function prepareServer (callback) {
       };
     });
 
+    server.auth.scheme('failScheme', function (server, options) {
+      return {
+        authenticate (request, reply) {
+          server.app.failed = true;
+          reply(Boom.internal());
+        }
+      };
+    });
+
     server.auth.strategy('fooAuth', 'test', { header: 'foo', value: 42 });
     server.auth.strategy('barAuth', 'test', { header: 'bar', value: 53 });
     server.auth.strategy('bazAuth', 'test', { header: 'baz', value: 64, scope: ['baz', 'foo'] });
     server.auth.strategy('badCreds', 'test', { header: 'bad', value: 99, credentials: null });
+    server.auth.strategy('fail', 'failScheme');
 
     server.auth.strategy('fooOnly', 'nuisance', {
       strategies: ['fooAuth']
@@ -57,6 +67,13 @@ function prepareServer (callback) {
     server.auth.strategy('fooBadCreds', 'nuisance', {
       strategies: ['fooAuth', 'badCreds']
     });
+    server.auth.strategy('fooFail', 'nuisance', {
+      strategies: ['fooAuth', 'fail']
+    });
+
+    function handler (request, reply) {
+      reply(request.auth);
+    }
 
     server.route([
       {
@@ -64,9 +81,7 @@ function prepareServer (callback) {
         path: '/foo',
         config: {
           auth: 'fooOnly',
-          handler: function (request, reply) {
-            reply(request.auth);
-          }
+          handler
         }
       },
       {
@@ -74,9 +89,7 @@ function prepareServer (callback) {
         path: '/foo/bar',
         config: {
           auth: 'fooBar',
-          handler: function (request, reply) {
-            reply(request.auth);
-          }
+          handler
         }
       },
       {
@@ -84,9 +97,7 @@ function prepareServer (callback) {
         path: '/foo/bar/baz',
         config: {
           auth: 'fooBarBaz',
-          handler: function (request, reply) {
-            reply(request.auth);
-          }
+          handler
         }
       },
       {
@@ -94,9 +105,15 @@ function prepareServer (callback) {
         path: '/foo/badCreds',
         config: {
           auth: 'fooBadCreds',
-          handler: function (request, reply) {
-            reply(request.auth);
-          }
+          handler
+        }
+      },
+      {
+        method: 'GET',
+        path: '/foo/fail',
+        config: {
+          auth: 'fooFail',
+          handler
         }
       }
     ]);
@@ -213,6 +230,28 @@ describe('Nuisance', () => {
           mode: 'required',
           error: null
         });
+        done();
+      });
+    });
+  });
+
+  it('stops after first failing strategy', (done) => {
+    prepareServer((err, server) => {
+      expect(err).to.not.exist();
+
+      server.inject({
+        method: 'GET',
+        url: '/foo/fail',
+        headers: {
+          foo: 1 // fails
+        }
+      }, (res) => {
+        expect(res.statusCode).to.equal(401);
+        expect(res.result).to.equal({
+          statusCode: 401,
+          error: 'Unauthorized'
+        });
+        expect(server.app.failed).to.not.exist();
         done();
       });
     });

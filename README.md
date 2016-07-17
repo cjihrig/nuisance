@@ -40,4 +40,4 @@ server.route([
 
 ## Configuration Options
 
-- `strategies` (array) - An array of strings, representing the authentication strategies to be tested.
+- `strategies` (array) - An array of strings, representing the authentication strategies to be tested. The strategies are tested one at a time. As soon as one strategy fails, no additional strategies are tried.
