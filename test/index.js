@@ -62,7 +62,7 @@ function prepareServer (callback) {
       strategies: ['fooAuth', 'barAuth']
     });
     server.auth.strategy('fooBarBaz', 'nuisance', {
-      strategies: ['fooAuth', 'barAuth', 'bazAuth']
+      strategies: ['fooAuth', { name: 'barAuth' }, 'bazAuth']
     });
     server.auth.strategy('fooBadCreds', 'nuisance', {
       strategies: ['fooAuth', 'badCreds']
