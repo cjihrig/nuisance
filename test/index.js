@@ -53,6 +53,7 @@ function prepareServer (callback) {
     server.auth.strategy('barAuth', 'test', { header: 'bar', value: 53 });
     server.auth.strategy('bazAuth', 'test', { header: 'baz', value: 64, scope: ['baz', 'foo'] });
     server.auth.strategy('badCreds', 'test', { header: 'bad', value: 99, credentials: null });
+    server.auth.strategy('stringCreds', 'test', { header: 'bad', value: 99, credentials: 'creds' });
     server.auth.strategy('fail', 'failScheme');
 
     server.auth.strategy('fooOnly', 'nuisance', {
@@ -64,11 +65,14 @@ function prepareServer (callback) {
     server.auth.strategy('fooBarBaz', 'nuisance', {
       strategies: ['fooAuth', { name: 'barAuth' }, 'bazAuth']
     });
-    server.auth.strategy('fooBadCreds', 'nuisance', {
-      strategies: ['fooAuth', 'badCreds']
+    server.auth.strategy('fooStringCredsBadCreds', 'nuisance', {
+      strategies: ['fooAuth', 'stringCreds', 'badCreds']
     });
     server.auth.strategy('fooFail', 'nuisance', {
       strategies: ['fooAuth', 'fail']
+    });
+    server.auth.strategy('fooBarBazString', 'nuisance', {
+      strategies: ['fooAuth', 'barAuth', 'bazAuth', 'stringCreds']
     });
 
     function handler (request, reply) {
@@ -102,9 +106,9 @@ function prepareServer (callback) {
       },
       {
         method: 'GET',
-        path: '/foo/badCreds',
+        path: '/foo/stringCreds/badCreds',
         config: {
-          auth: 'fooBadCreds',
+          auth: 'fooStringCredsBadCreds',
           handler
         }
       },
@@ -213,7 +217,7 @@ describe('Nuisance', () => {
 
       server.inject({
         method: 'GET',
-        url: '/foo/badCreds',
+        url: '/foo/stringCreds/badCreds',
         headers: {
           foo: 42,
           bad: 99
@@ -224,9 +228,10 @@ describe('Nuisance', () => {
           isAuthenticated: true,
           credentials: {
             fooAuth: { foo: 42 },
+            stringCreds: 'creds',
             badCreds: null
           },
-          strategy: 'fooBadCreds',
+          strategy: 'fooStringCredsBadCreds',
           mode: 'required',
           error: null
         });
