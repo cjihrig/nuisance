@@ -59,6 +59,16 @@ function prepareServer (callback) {
     server.auth.strategy('fooOnly', 'nuisance', {
       strategies: ['fooAuth']
     });
+    server.auth.strategy('fooWithDefaults', 'nuisance', {
+      strategies: [
+        {
+          name: 'fooAuth',
+          failureCredentials (request) {
+            return { path: request.path };
+          }
+        }
+      ]
+    });
     server.auth.strategy('fooBar', 'nuisance', {
       strategies: ['fooAuth', 'barAuth']
     });
@@ -85,6 +95,14 @@ function prepareServer (callback) {
         path: '/foo',
         config: {
           auth: 'fooOnly',
+          handler
+        }
+      },
+      {
+        method: 'GET',
+        path: '/foo/with/defaults',
+        config: {
+          auth: 'fooWithDefaults',
           handler
         }
       },
@@ -232,6 +250,28 @@ describe('Nuisance', () => {
             badCreds: null
           },
           strategy: 'fooStringCredsBadCreds',
+          mode: 'required',
+          error: null
+        });
+        done();
+      });
+    });
+  });
+
+  it('allows failure credentials to be set', (done) => {
+    prepareServer((err, server) => {
+      expect(err).to.not.exist();
+
+      server.inject({
+        method: 'GET',
+        url: '/foo/with/defaults',
+        headers: { foo: 100 }
+      }, (res) => {
+        expect(res.statusCode).to.equal(200);
+        expect(res.result).to.include({
+          isAuthenticated: true,
+          credentials: { fooAuth: { path: '/foo/with/defaults' } },
+          strategy: 'fooWithDefaults',
           mode: 'required',
           error: null
         });

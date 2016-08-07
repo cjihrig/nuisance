@@ -42,3 +42,4 @@ server.route([
 
 - `strategies` (array) - An array of strings or objects, representing the authentication strategies to be tested. The strategies are tested one at a time. As soon as one strategy fails, no additional strategies are tried. If an array element is a string, it must be the name of an existing auth strategy. If an array element is an object, it must adhere to the following schema.
   - `name` (string) - The name of the auth strategy to test.
+  - `failureCredentials` (function) - A *synchronous* function that is called if authentication fails for the strategy in question. This function takes a hapi `request` object as its only argument, and returns a credentials object. This is useful for setting default credentials on failed authentication. If this function is not provided for a failing strategy, the default behavior is to fail the aggregate authentication.
