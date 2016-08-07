@@ -40,4 +40,5 @@ server.route([
 
 ## Configuration Options
 
-- `strategies` (array) - An array of strings, representing the authentication strategies to be tested. The strategies are tested one at a time. As soon as one strategy fails, no additional strategies are tried.
+- `strategies` (array) - An array of strings or objects, representing the authentication strategies to be tested. The strategies are tested one at a time. As soon as one strategy fails, no additional strategies are tried. If an array element is a string, it must be the name of an existing auth strategy. If an array element is an object, it must adhere to the following schema.
+  - `name` (string) - The name of the auth strategy to test.
