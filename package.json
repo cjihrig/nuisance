@@ -21,8 +21,8 @@
     "node": ">=4.0.0"
   },
   "dependencies": {
-    "boom": "3.x.x",
-    "insync": "2.x.x",
+    "boom": "3.2.2",
+    "insync": "2.1.1",
     "joi": "9.0.4"
   },
   "devDependencies": {
