@@ -152,9 +152,9 @@ describe('Nuisance', () => {
     expect(res.result).to.include({
       isAuthenticated: true,
       credentials: {
-        fooAuth: { foo: 42 },
-        barAuth: { bar: 53 },
-        bazAuth: { baz: 64 },
+        fooAuth: { foo: 42, scope: undefined },
+        barAuth: { bar: 53, scope: undefined },
+        bazAuth: { baz: 64, scope: ['baz', 'foo'] },
         scope: ['baz', 'foo']
       },
       strategy: 'fooBarBaz',
@@ -177,7 +177,8 @@ describe('Nuisance', () => {
     expect(res.statusCode).to.equal(401);
     expect(res.result).to.equal({
       statusCode: 401,
-      error: 'Unauthorized'
+      error: 'Unauthorized',
+      message: 'Unauthorized'
     });
   });
 
@@ -195,8 +196,8 @@ describe('Nuisance', () => {
     expect(res.result).to.include({
       isAuthenticated: true,
       credentials: {
-        fooAuth: { foo: 42 },
-        barAuth: { bar: 53 }
+        fooAuth: { foo: 42, scope: undefined },
+        barAuth: { bar: 53, scope: undefined }
       },
       strategy: 'fooBar',
       mode: 'required',
@@ -220,7 +221,7 @@ describe('Nuisance', () => {
     expect(res.result).to.include({
       isAuthenticated: true,
       credentials: {
-        fooAuth: { foo: 42 },
+        fooAuth: { foo: 42, scope: undefined },
         stringCreds: 'creds'
       },
       strategy: 'fooStringCreds',
@@ -255,10 +256,12 @@ describe('Nuisance', () => {
         foo: 1 // fails
       }
     });
+
     expect(res.statusCode).to.equal(401);
     expect(res.result).to.equal({
       statusCode: 401,
-      error: 'Unauthorized'
+      error: 'Unauthorized',
+      message: 'Unauthorized'
     });
     expect(server.app.failed).to.not.exist();
   });
