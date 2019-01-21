@@ -1,6 +1,6 @@
 {
   "name": "nuisance",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "hapi authentication requiring multiple strategies",
   "author": "Colin J. Ihrig <cjihrig@gmail.com> (http://www.cjihrig.com/)",
   "main": "lib/index.js",
