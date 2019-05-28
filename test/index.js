@@ -1,9 +1,9 @@
 'use strict';
 
-const Boom = require('boom');
-const Code = require('code');
-const Hapi = require('hapi');
-const Lab = require('lab');
+const Boom = require('@hapi/boom');
+const Code = require('@hapi/code');
+const Hapi = require('@hapi/hapi');
+const Lab = require('@hapi/lab');
 const Plugin = require('../lib');
 
 const lab = exports.lab = Lab.script();
